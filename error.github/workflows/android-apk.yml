@@ -1,0 +1,38 @@
+name: Build Android APK
+
+on:
+  push:
+    paths:
+      - 'ChessVisionOverlay-android.zip'
+      - '.github/workflows/android-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Extract project
+        run: unzip -q ChessVisionOverlay-android.zip -d extracted
+
+      - name: Build debug APK
+        working-directory: extracted/ChessVisionOverlay
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChessVisionOverlay-debug-apk
+          path: extracted/ChessVisionOverlay/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
